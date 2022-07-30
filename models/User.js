@@ -43,6 +43,10 @@ const UserSchema = new mongoose.Schema({
 // mongoose middleware
 // password hashing pre-hook
 UserSchema.pre("save", async function () {
+  // console.log(this.modifiedPaths());
+  if (!this.isModified("password")) {
+    return;
+  }
   const salt = await bycrypt.genSalt(10);
   this.password = await bycrypt.hash(this.password, salt);
 });
