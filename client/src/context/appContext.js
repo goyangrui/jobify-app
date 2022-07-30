@@ -10,6 +10,12 @@ import {
   REGISTER_USER_BEGIN,
   REGISTER_USER_SUCCESS,
   REGISTER_USER_ERROR,
+  LOGIN_USER_BEGIN,
+  LOGIN_USER_SUCCESS,
+  LOGIN_USER_ERROR,
+  SETUP_USER_BEGIN,
+  SETUP_USER_SUCCESS,
+  SETUP_USER_ERROR,
 } from "./actions";
 
 // initial load
@@ -58,9 +64,9 @@ const AppProvider = ({ children }) => {
   const registerUser = async (currentUser) => {
     dispatch({ type: REGISTER_USER_BEGIN });
     try {
-      const response = await axios.post("/api/v1/auth/register", currentUser);
+      const { data } = await axios.post("/api/v1/auth/register", currentUser);
       // console.log(response);
-      const { user, token, location } = response.data;
+      const { user, token, location } = data;
       dispatch({
         type: REGISTER_USER_SUCCESS,
         payload: { user, token, location },
@@ -76,8 +82,55 @@ const AppProvider = ({ children }) => {
     clearAlert();
   };
 
+  const loginUser = async (currentUser) => {
+    dispatch({ type: LOGIN_USER_BEGIN });
+    try {
+      const { data } = await axios.post("/api/v1/auth/login", currentUser);
+      // console.log(response);
+      const { user, token, location } = data;
+      dispatch({
+        type: LOGIN_USER_SUCCESS,
+        payload: { user, token, location },
+      });
+      addUserToLocalStorage({ user, token, location });
+    } catch (error) {
+      // console.log(error.response);
+      dispatch({
+        type: LOGIN_USER_ERROR,
+        payload: { msg: error.response.data.msg },
+      });
+    }
+    clearAlert();
+  };
+
+  const setupUser = async ({ currentUser, endPoint, alertText }) => {
+    dispatch({ type: SETUP_USER_BEGIN });
+    try {
+      const { data } = await axios.post(
+        `/api/v1/auth/${endPoint}`,
+        currentUser
+      );
+      // console.log(response);
+      const { user, token, location } = data;
+      dispatch({
+        type: SETUP_USER_SUCCESS,
+        payload: { user, token, location, alertText },
+      });
+      addUserToLocalStorage({ user, token, location });
+    } catch (error) {
+      // console.log(error.response);
+      dispatch({
+        type: SETUP_USER_ERROR,
+        payload: { msg: error.response.data.msg },
+      });
+    }
+    clearAlert();
+  };
+
   return (
-    <AppContext.Provider value={{ ...state, displayAlert, registerUser }}>
+    <AppContext.Provider
+      value={{ ...state, displayAlert, registerUser, loginUser, setupUser }}
+    >
       {children}
     </AppContext.Provider>
   );

@@ -18,8 +18,15 @@ function Register() {
   const navigate = useNavigate();
 
   // global state
-  const { user, isLoading, showAlert, displayAlert, registerUser } =
-    useAppContext();
+  const {
+    user,
+    isLoading,
+    showAlert,
+    displayAlert,
+    registerUser,
+    loginUser,
+    setupUser,
+  } = useAppContext();
 
   const toggleMember = () => {
     setValues({ ...values, isMember: !values.isMember });
@@ -40,9 +47,17 @@ function Register() {
     }
     const currentUser = { name, email, password };
     if (isMember) {
-      console.log("already a member");
+      setupUser({
+        currentUser,
+        endPoint: "login",
+        alertText: "Login Successful! Redirecting",
+      });
     } else {
-      registerUser(currentUser);
+      setupUser({
+        currentUser,
+        endPoint: "register",
+        alertText: "User Created! Redirecting",
+      });
     }
   };
 

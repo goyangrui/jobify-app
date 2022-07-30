@@ -9,6 +9,9 @@ dotenv.config();
 // passes errors without try catch blocks
 import "express-async-errors";
 
+// morgan
+import morgan from "morgan";
+
 // connect to database function
 import connectDB from "./db/connect.js";
 
@@ -21,6 +24,11 @@ import notFoundMiddleware from "./middleware/not-found.js";
 import errorHandlerMiddleware from "./middleware/error-handler.js";
 
 // middleware
+
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
+
 app.use(express.json());
 
 // app.get("/", (req, res) => {
