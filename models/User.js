@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import validator from "validator";
+import bycrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -22,6 +24,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide password"],
     minlength: 6,
+    select: false,
   },
   lastName: {
     type: String,
@@ -36,5 +39,19 @@ const UserSchema = new mongoose.Schema({
     default: "my city",
   },
 });
+
+// mongoose middleware
+// password hashing pre-hook
+UserSchema.pre("save", async function () {
+  const salt = await bycrypt.genSalt(10);
+  this.password = await bycrypt.hash(this.password, salt);
+});
+
+// model instance methods
+UserSchema.methods.createJWT = function () {
+  return jwt.sign({ userID: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_LIFETIME,
+  });
+};
 
 export default mongoose.model("User", UserSchema);
