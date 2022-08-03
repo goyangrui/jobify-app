@@ -25,24 +25,42 @@ import errorHandlerMiddleware from "./middleware/error-handler.js";
 
 import authenticateUser from "./middleware/auth.js";
 
+// imports for production (get url to static assets)
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import path from "path";
+
+// security packages
+import helmet from "helmet";
+import xss from "xss-clean";
+import mongoSanitize from "express-mongo-sanitize";
+
 // middleware
 
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
+// get absolute path to current directory
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// production - serve static assets from client/build folder
+app.use(express.static(path.resolve(__dirname, "./client/build")));
+
 app.use(express.json());
 
-// app.get("/", (req, res) => {
-//   res.json({ msg: "Welcome!" });
-// });
-app.get("/api/v1", (req, res) => {
-  res.json({ msg: "API" });
-});
+// apply security middleware
+app.use(helmet());
+app.use(xss());
+app.use(mongoSanitize());
 
 //routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/jobs", authenticateUser, jobsRouter);
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
+});
 
 // error middleware
 
